@@ -3,21 +3,27 @@ const app=express();
 
 
 
-app.use("/host",(req,res)=>{
-    res.send("this is use first2")
-})
 
+
+// This will only handle Get call to /user
+app.get("/user",(req,res)=>{
+    res.send({firstname:"sanjeev"});    
+});
+
+// saving data to db
+app.post("/user",(req,res)=>{
+    console.log("Save data to the database");
+    
+    res.send("data saved to the database")
+})
+// Delete the data
+app.delete("/user",(req,res)=>{
+    res.send("Deleted successfully")
+})
+// this will match all the http method API call
 app.use("/test",(req,res)=>{
-    res.send("this is use first test")
-})
-
-app.use("/",(req,res)=>{
     res.send("this is use first")
 })
-
-app.get("/",(req,res)=>{
-    res.send("Hello express");    
-});
 
 app.listen(3000,()=>{
     console.log("server is running")

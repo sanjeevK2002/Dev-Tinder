@@ -6,9 +6,27 @@ const app=express();
 
 
 // This will only handle Get call to /user
-app.get("/user",(req,res)=>{
-    res.send({firstname:"sanjeev"});    
-});
+// app.get("/user",(req,res)=>{
+//     res.send({firstname:"sanjeev"});    
+// });
+
+// app.get("/user",(req,res)=>{
+//     console.log(req.query);
+//     res.send({firstname:"sanjeev" , lastName:"paswan"})
+       
+// });
+
+// app.get("/user/:userId",(req,res)=>{
+//     console.log(req.params);  
+//     res.send({firstname:"sanjeev" , lastName:"paswan"})
+    
+// })
+
+app.get("/user/:userId/:name/:password",(req,res)=>{
+    console.log(req.params);  
+    res.send({firstname:"sanjeev" , lastName:"paswan"})
+    
+})
 
 // saving data to db
 app.post("/user",(req,res)=>{

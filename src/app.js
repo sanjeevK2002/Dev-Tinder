@@ -22,26 +22,41 @@ const app=express();
     
 // })
 
+
+app.use("/user",
+    [(req,res,next)=>{
+       
+        // res.send("this is first call")
+        next()
+    },
+    (req,res,next)=>{
+        // res.send("This is second call")
+        next();
+     }],
+    (req,res)=>{
+    res.send("this is third call")
+    }
+)
+
 app.get("/user/:userId/:name/:password",(req,res)=>{
     console.log(req.params);  
     res.send({firstname:"sanjeev" , lastName:"paswan"})
     
 })
 
-// saving data to db
-app.post("/user",(req,res)=>{
-    console.log("Save data to the database");
-    
-    res.send("data saved to the database")
-})
-// Delete the data
-app.delete("/user",(req,res)=>{
-    res.send("Deleted successfully")
-})
-// this will match all the http method API call
-app.use("/test",(req,res)=>{
-    res.send("this is use first")
-})
+// // saving data to db
+// app.post("/user",(req,res)=>{
+//     console.log("Save data to the database");
+//     res.send("data saved to the database")
+// })
+// // Delete the data
+// app.delete("/user",(req,res)=>{
+//     res.send("Deleted successfully")
+// })
+// // this will match all the http method API call
+// app.use("/test",(req,res)=>{
+//     res.send("this is use first")
+// })
 
 app.listen(3000,()=>{
     console.log("server is running")

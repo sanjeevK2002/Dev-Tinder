@@ -3,11 +3,14 @@ const connectDB = require("./config/database");
 const app = express();
 const User= require("./models/user");
 const bcrypt = require("bcrypt");
+const cookieParser =require("cookie-parser")
+const jwt = require("jsonwebtoken")
 const {signupValidation} = require("./utils/signupValidation");
 
 //Express.json reads the json obect and convert it into javascript object and 
 // add this js object back to req in req body
 app.use(express.json());
+app.use(cookieParser());
 //signup
 app.post("/signup", async (req,res)=>{
     // const user = new User(req.body); 
@@ -37,16 +40,20 @@ app.post("/signup", async (req,res)=>{
 
 app.post("/login",async (req,res)=>{
     try {
-        const {emailId , password} = req.body;
+        const {emailId , password} = req.body;        
         const user = await User.findOne({emailId : emailId});
-        console.log(User);
-        if(!User){
+        if(!user){
             res.send("Invalid Emailid");
         }
 
         const isPasswordValid = await bcrypt.compare(password , user.password);
 
-        if(isPasswordValid){
+        if(isPasswordValid){   
+            //create token 
+            const token = await jwt.sign({_id : user._id }, "DEV@Tinder7098")
+            console .log(token)
+            //Add the token to cookies and send the response back to the user
+           res.cookie("token" ,token)
             res.send("Login Successful !!!")
         }else{
             throw new Error("Some credentional is wrong")
@@ -63,9 +70,7 @@ app.get("/user",async (req,res)=>{
         const userEmail = req.body.emailId;
         
         try {
-            const users= await User.find({ emailId : userEmail})
-            console.log(users);
-            
+            const users= await User.find({ emailId : userEmail})            
             if(users.length===0){
                 res.status(404).send("User not found");
             }
@@ -76,10 +81,36 @@ app.get("/user",async (req,res)=>{
             res.status(404).send("Something went wrong");
         }
 });
+//cookies
+app.get("/profile",async (req,res)=>{
+  try {
+     const cookies = req.cookies;
+
+    const {token} = cookies;
+    //validate my token
+    if(!token){
+        throw new Error("Invalid Token ");
+    }
+    const decodeMessage = await jwt.verify(token , "DEV@Tinder7098")
+    const {_id} = decodeMessage;
+
+    const user = await User.findById(_id);
+    if(!user){
+        throw new Error("User does not exist !!!!");
+    }
+    res.send(user)
+}
+    catch (error) {
+        res.status().send("Credential invalid  "+error.message)
+    }
+    
+});
+
+
 
 //Feed api
 
-app.get("/user",async (req,res)=>{
+app.get("/feed",async (req,res)=>{
     try {
         const users = await User.find({});
         res.send(users)
@@ -90,12 +121,10 @@ app.get("/user",async (req,res)=>{
 })
 
 // find one user
-app.get("/user",async (req,res)=>{
+app.get("/find",async (req,res)=>{
     const userEmail= req.body.emailId;
-    console.log(userEmail);    
     try {
         const users = await User.findOne({emailId : userEmail});
-       console.log(users)
         if(!userEmail){
             res.send("user not exist")
         }else{
@@ -107,7 +136,7 @@ app.get("/user",async (req,res)=>{
 });
 //delete data from database
 
-app.delete("/user",async (req,res)=>{
+app.delete("/delete",async (req,res)=>{
     const userID= req.body._id;
     try{
         const users = await User.findByIdAndDelete({_id : userID})

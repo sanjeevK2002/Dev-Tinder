@@ -3,11 +3,12 @@ const jwt = require("jsonwebtoken")
 
 const userAuth=async (req,res,next)=>{
     try{
-        const {token} = req.cookies;
+        const {token} = req.cookies;//extracts the token property from the cookies sent with the incoming HTTP request,
         if(!token){
             throw new Error("TOken is not valid !!!");
         }
-        const decodeObj = await jwt.verify(token ,"DEV@Tinder7098" );
+        ////  verifies the JWT's signature and decodes its payload to ensure it is valid and not tampered with, using the provided secret key.
+        const decodeObj = await jwt.verify(token ,"DEV@Tinder7098" ); 
         const {_id} = decodeObj;
         const user = await User.findById(_id);
         if(!user){

@@ -1,15 +1,22 @@
 const express = require("express");
 const profileRouter = express.Router();
 const { userAuth } = require("../middleware/auth");
-const {validateEditProfileData} = require("../utils/validation")
-
-//cookies
+const {validateEditProfileData} = require("../utils/validation");
+const {validEditedPassword}  = require("../utils/validation")
+ 
+/**
+ * GET /profile
+ * - Retrieves the authenticated user's profile.
+ * - Requires `userAuth` middleware to validate the user.
+ */
 profileRouter.get("/profile", userAuth, async (req, res) => {
   try {
-    const user = req.user;
-    res.send(user);
+    const user = req.user; // Get user from middleware
+    res.send(user); // Send user data as response
   } catch (error) {
-    res.status().send("Credential invalid  " + error.message);
+    if (!res.headersSent) {
+      res.status(500).send("Credential invalid: " + error.message);
+    }
   }
 });
 
@@ -17,9 +24,10 @@ profileRouter.get("/profile", userAuth, async (req, res) => {
 profileRouter.patch("/profile/edit", userAuth,async  (req, res) => {
     try{
     
-         if(!validateEditProfileData(req)){
-            throw new Error("Invalid Edit Request !!!")
-         };
+      if (!validateEditProfileData(req)) {
+        res.status(400).send("Invalid Edit Request!!!");
+        return; // Stop further execution if validation fails
+      }
 
          const loggedInUSer = req.user;
          Object.keys(req.body).forEach((fields)=>loggedInUSer[fields] = req.body[fields])
@@ -28,8 +36,33 @@ profileRouter.patch("/profile/edit", userAuth,async  (req, res) => {
               data : loggedInUSer}
          )
         }catch(error){
-        res.status().send("ERROR : "+error.message)
+          if (!res.headersSent) {
+            res.status(500).send("Something happend wrong : " + error.message);
+          }
     }
+})
+
+//change password
+profileRouter.patch("/profile/changePassword",userAuth, async (req,res)=>{
+     try {
+
+      if(! validEditedPassword){
+        res.status().send("Unauthorized Request!!!")
+        return;
+      }
+      const loggedInUSer = req.user;
+      const oldPassword =  loggedInUSer.password;
+      const Name = loggedInUSer.firstName;
+     
+        Object.keys(req.body).forEach((fields)=>oldPassword[fields] = req.body[fields]);
+        await loggedInUSer.save();
+        res.json({message : `${Name} , Your Password has been updated successfully! `})
+      
+     } catch (error) {
+      if (!res.headersSent) {
+        res.status(500).send("Please check your credential : " + error.message);
+      }
+     }
 })
 
 module.exports = profileRouter;

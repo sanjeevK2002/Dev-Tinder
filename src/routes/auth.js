@@ -48,6 +48,7 @@ authRouter.post("/login",async (req,res)=>{
             const token = await user.getJWT()//
             
             //Add the token to cookies and send the response back to the user
+            //allows you to set cookies on the client’s browser
            res.cookie("token" ,token,{
             expires:new Date(Date.now()+8 +3600000)
            });
